@@ -1,3 +1,12 @@
+# Fork of github.com/githubnemo/CompileDaemon that allows multiple build commands
+
+Separate your build steps with `&&` and they will be run sequentially during building.
+
+Example:
+```bash
+ CompileDaemon -build="go generate ./... && go build -o ./tmp/MyApp ./cmd/MyApp" -command="./tmp/MyApp"
+```
+
 # Very simple Compile Daemon for Go [![GoDoc](https://godoc.org/github.com/githubnemo/CompileDaemon?status.png)](http://godoc.org/github.com/githubnemo/CompileDaemon)
 
 Watches your .go files in a directory and invokes `go build` if
