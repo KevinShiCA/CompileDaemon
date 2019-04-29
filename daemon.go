@@ -147,29 +147,38 @@ func failColor(format string, args ...interface{}) string {
 func build() bool {
 	log.Println(okColor("Running build command!"))
 
-	args := strings.Split(*flag_build, " ")
-	if len(args) == 0 {
+	entered_cmds := strings.Split(*flag_build, " && ")
+
+	if len(entered_cmds) == 0 {
 		// If the user has specified and empty then we are done.
 		return true
 	}
 
-	cmd := exec.Command(args[0], args[1:]...)
+	cmds := [][]string{}
 
-	if *flag_build_dir != "" {
-		cmd.Dir = *flag_build_dir
-	} else {
-		cmd.Dir = *flag_directory
+	for _, entered_cmd := range entered_cmds {
+		cmds = append(cmds, strings.Split(entered_cmd, " "))
 	}
 
-	output, err := cmd.CombinedOutput()
+	for _, c := range cmds {
+		cmd := exec.Command(c[0], c[1:]...)
 
-	if err == nil {
-		log.Println(okColor("Build ok."))
-	} else {
-		log.Println(failColor("Error while building:\n"), failColor(string(output)))
+		if *flag_build_dir != "" {
+			cmd.Dir = *flag_build_dir
+		} else {
+			cmd.Dir = *flag_directory
+		}
+
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			log.Println(failColor("Error while building:\n"), failColor(string(output)))
+			return false
+		}
 	}
 
-	return err == nil
+	log.Println(okColor("Build ok."))
+	return true
 }
 
 func matchesPattern(pattern *regexp.Regexp, file string) bool {
@@ -231,7 +240,7 @@ func logger(pipeChan <-chan io.ReadCloser) {
 func startCommand(command string) (cmd *exec.Cmd, stdout io.ReadCloser, stderr io.ReadCloser, err error) {
 	args := strings.Split(command, " ")
 	cmd = exec.Command(args[0], args[1:]...)
-	
+
 	if *flag_run_dir != "" {
 		cmd.Dir = *flag_run_dir
 	}
